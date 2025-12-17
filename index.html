@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ATA KAK • Top SMT</title>
+
+  <link rel="stylesheet" href="site_cartes.css" />
+
+  <!-- Vue 3 -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <!-- PapaParse -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</head>
+
+<body>
+<div id="app">
+  <!-- HERO -->
+  <header id="hero" class="hero">
+    <div class="hero-inner">
+      <div class="hero-title-stack">
+        <span class="hero-title-line">Top</span>
+        <span class="hero-title-line">SMT</span>
+      </div>
+      <div class="hero-sub">
+        Le top 2020-2024 de l'iTunes de Pierre-Alexandre
+      </div>
+    </div>
+  </header>
+
+  <!-- CALQUE fond/*.png -->
+  <div id="fond-layer" class="fond-layer"></div>
+
+  <!-- SIGNET BAS-DROITE (nom du fond) -->
+  <div id="fond-signet" class="fond-signet" aria-hidden="true">
+    <span id="fond-signet-text">FOND</span>
+  </div>
+
+  <!-- CONTENU -->
+  <main class="page">
+    <!-- ONGLET (fixé, rendu par Vue seulement quand CSV chargé) -->
+    <div class="tabs-sticky-wrapper" v-if="!loading && songsRaw.length">
+      <nav class="tabs" aria-label="Modes de classement">
+        <button
+          v-for="mode in modes"
+          :key="mode.id"
+          type="button"
+          :class="['tab-btn', { active: currentMode === mode.id }]"
+          :aria-pressed="currentMode === mode.id ? 'true' : 'false'"
+          @click="setMode(mode.id)"
+        >
+          <span class="tab-label">{{ mode.label }}</span>
+
+          <span class="tab-help" tabindex="0" aria-label="Explication du classement">
+            ?
+            <span class="tab-tooltip" role="tooltip">
+              {{ mode.help }}
+            </span>
+          </span>
+        </button>
+      </nav>
+    </div>
+
+    <div v-if="loading" class="loading">
+      Chargement du CSV…
+    </div>
+
+    <transition-group v-else name="cards" tag="div" class="grid">
+      <div
+        v-for="song in filteredSongs"
+        :key="currentMode + '::' + song.id"
+        class="song-card"
+      >
+        <!-- HEADER -->
+        <div class="song-header">
+          <div class="song-header-strip">
+            <div class="song-strip-text">
+              {{ displayRank(song) }}
+            </div>
+          </div>
+
+          <div class="song-header-main">
+            <!-- ARTISTE -->
+            <div class="song-header-artist">
+              <span class="song-artist-glitch">{{ song.artistUpper }}</span>
+            </div>
+
+            <!-- TITRE -->
+            <div class="song-header-title">
+              <span class="song-title-text">{{ song.titleUpper }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- BODY -->
+        <div class="song-body">
+          <div class="song-info">
+            <p class="song-comment" v-if="song.comment">
+              {{ song.comment }}
+            </p>
+
+            <p class="song-meta">
+              {{ song.album }}
+              <span v-if="song.plays"> • {{ song.plays }} lectures</span>
+              <span v-if="song.totalMinutes">
+                • {{ song.totalMinutes.toFixed(1) }} min écoutées
+              </span>
+            </p>
+
+            <div class="song-actions">
+              <a
+                v-if="song.youtubeUrl"
+                class="play-button"
+                :href="song.youtubeUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                ▶ PLAY
+              </a>
+            </div>
+          </div>
+
+          <div class="song-cover-wrapper">
+            <img
+              v-if="song.artworkUrl"
+              class="song-cover"
+              :src="song.artworkUrl"
+              :alt="`Pochette de ${song.title}`"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+        </div>
+      </div>
+    </transition-group>
+
+    <footer class="footer">
+      Site statique généré à partir du CSV 💛❤️ • Top limité à 100 chansons par mode
+    </footer>
+  </main>
+</div>
+
+<!-- HERO SHRINK + ONGLETS FIXÉS -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const hero = document.getElementById("hero");
+  const body = document.body;
+
+  const onScroll = () => {
+    const y = window.scrollY || window.pageYOffset;
+    const threshold = window.innerHeight * 0.18;
+
+    if (y > threshold) {
+      hero.classList.add("compact");
+      body.classList.add("hero-compact");
+      body.classList.add("tabs-fixed");
+    } else {
+      hero.classList.remove("compact");
+      body.classList.remove("hero-compact");
+      body.classList.remove("tabs-fixed");
+    }
+  };
+
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+});
+</script>
+
+<script src="app.js"></script>
+</body>
+</html>
