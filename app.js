@@ -72,26 +72,47 @@ createApp({
           id: "zscore",
           label: "Top z-score",
           rankField: "rankZscore",
-          help: "75% de Cote z du nombre d'écoute + 25% Cote Z de la durée de la chansons."
+          help: "Classement statistique normalisé qui met en valeur les écoutes exceptionnelles."
         },
         {
           id: "jessye",
           label: "Top Jessye",
           rankField: "rankJessye",
-          help: "Jessye trouvait qu'une chanson courte était désavantagé a une chanson plus longue et qu'a partir de 6 minutes toutes les chansons devrait s'équivaloir , c'est ce que j'ai fais"
+          help: "Classement maison combinant fréquence, durée et constance d’écoute."
         }
       ],
 
+      // Tooltip
+      openHelpId: null,
+
+      // Observer
       _io: null,
+
+      // Fond scroll
       _rafPending: false,
       _lastFondFilename: "",
       _lastFondVisible: null,
+
+      // listeners
+      _onDocPointerDown: null,
+      _onResize: null,
+      _onScrollClose: null,
     };
   },
 
   computed: {
     currentModeConfig() {
       return this.modes.find((m) => m.id === this.currentMode) || null;
+    },
+
+    helpTitle() {
+      const m = this.modes.find(x => x.id === this.openHelpId);
+      return m ? m.label : "";
+    },
+
+    helpText() {
+      const m = this.modes.find(x => x.id === this.openHelpId);
+      return m ? m.help : "";
     },
 
     // Top 100 = rangs 1..100 affichés 100 -> 1 (ordre décroissant)
@@ -111,9 +132,13 @@ createApp({
 
   watch: {
     currentMode() {
+      // ferme le tooltip quand on change d’onglet
+      this.closeHelp();
+
       nextTick(() => {
         this.resetCardsVisibility();
         this.setupObserver(true);
+        this.measureTabsHeight();
       });
     },
   },
@@ -121,7 +146,8 @@ createApp({
   mounted() {
     this.loadCsv();
 
-    const onScroll = () => {
+    // Scroll fond
+    const onScrollFond = () => {
       if (this._rafPending) return;
       this._rafPending = true;
       requestAnimationFrame(() => {
@@ -129,14 +155,54 @@ createApp({
         this.updateFond();
       });
     };
+    window.addEventListener("scroll", onScrollFond, { passive: true });
 
-    window.addEventListener("scroll", onScroll, { passive: true });
+    // Fermer tooltip sur scroll (mobile friendly)
+    this._onScrollClose = () => {
+      if (this.openHelpId) this.closeHelp();
+    };
+    window.addEventListener("scroll", this._onScrollClose, { passive: true });
+
+    // Fermer tooltip si clic/tap ailleurs (pointerdown)
+    this._onDocPointerDown = () => {
+      if (this.openHelpId) this.closeHelp();
+    };
+    document.addEventListener("pointerdown", this._onDocPointerDown);
+
+    // Resize -> re-mesure tabs
+    this._onResize = () => this.measureTabsHeight();
+    window.addEventListener("resize", this._onResize);
+  },
+
+  beforeUnmount() {
+    if (this._io) this._io.disconnect();
+    if (this._onDocPointerDown) document.removeEventListener("pointerdown", this._onDocPointerDown);
+    if (this._onResize) window.removeEventListener("resize", this._onResize);
+    if (this._onScrollClose) window.removeEventListener("scroll", this._onScrollClose);
   },
 
   methods: {
     setMode(modeId) {
       if (this.currentMode === modeId) return;
       this.currentMode = modeId;
+    },
+
+    toggleHelp(modeId) {
+      this.openHelpId = (this.openHelpId === modeId) ? null : modeId;
+    },
+
+    closeHelp() {
+      this.openHelpId = null;
+    },
+
+    // Mesure la hauteur réelle des tabs et met à jour --tabs-h
+    measureTabsHeight() {
+      const wrapper = document.querySelector(".tabs-sticky-wrapper");
+      if (!wrapper) return;
+      const h = Math.ceil(wrapper.getBoundingClientRect().height || 0);
+      if (h > 0) {
+        document.documentElement.style.setProperty("--tabs-h", `${h}px`);
+      }
     },
 
     loadCsv() {
@@ -153,13 +219,11 @@ createApp({
             const title = (row["Titre"] || "").trim();
             const artist = (row["Artiste"] || "").trim();
             const album = (row["Album"] || "").trim();
-
             if (!title || !artist) return;
 
             const duree = parseFloat(row["Duree_min"] || "0") || 0;
             const minutesTotales = parseFloat(row["Minutes_totales"] || "0") || 0;
             const lectures = parseInt(row["Lectures"] || "0", 10) || 0;
-
             if (lectures <= 0 || duree <= 0) return;
 
             const artworkUrl = normalizeArtworkUrl(row["Artwork_URL"] || "");
@@ -200,6 +264,7 @@ createApp({
             this.resetCardsVisibility();
             this.setupObserver(true);
             this.updateFond();
+            this.measureTabsHeight();
           });
         },
         error: (err) => {

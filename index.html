@@ -1,26 +1,25 @@
-ata?<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Open Graph / Facebook -->
-<!-- Open Graph / Facebook -->
-<meta property="og:type" content="website">
-<meta property="og:title" content="Top SMT (2020–2024)">
-<meta property="og:description" content="Les tops iTunes de Pierre-Alexandre : lectures, minutes, z-score et Jessye.">
-<meta property="og:url" content="https://peate1515.github.io/TOP/">
-<meta property="og:image" content="https://peate1515.github.io/TOP/intro.png">
+  <title>· Top SMT · </title>
 
-<!-- Recommandé -->
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:locale" content="fr_CA">
+  <!-- ===== Open Graph / Facebook ===== -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Top SMT (2020–2024)" />
+  <meta property="og:description" content="Le top 2020–2024 de Pierre-Alexandre." />
+  <meta property="og:url" content="https://peate1515.github.io/TOP/" />
+  <meta property="og:image" content="https://peate1515.github.io/TOP/intro.png" />
+  <meta property="og:image:secure_url" content="https://peate1515.github.io/TOP/intro.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
 
-<!-- Optionnel mais recommandé -->
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:locale" content="fr_CA">
-  <title>• Top SMT •</title>
+  <!-- ===== Twitter ===== -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Top SMT (2020–2024)" />
+  <meta name="twitter:description" content="Le top 2020–2024 de l’iTunes de Pierre-Alexandre. Plusieurs classements." />
+  <meta name="twitter:image" content="https://peate1515.github.io/TOP/intro.png" />
 
   <link rel="stylesheet" href="site_cartes.css" />
 
@@ -42,6 +41,12 @@ ata?<!DOCTYPE html>
       <div class="hero-sub">
         Le top 2020-2024 de l'iTunes de Pierre-Alexandre
       </div>
+
+      <!-- Flèche / incitation scroll -->
+      <button id="hero-scroll" class="hero-scroll" type="button" aria-label="Voir la suite">
+        <span class="hero-scroll-dot"></span>
+        <span class="hero-scroll-arrow">⌄</span>
+      </button>
     </div>
   </header>
 
@@ -55,7 +60,7 @@ ata?<!DOCTYPE html>
 
   <!-- CONTENU -->
   <main class="page">
-    <!-- ONGLET (fixé, rendu par Vue seulement quand CSV chargé) -->
+    <!-- ONGLET -->
     <div class="tabs-sticky-wrapper" v-if="!loading && songsRaw.length">
       <nav class="tabs" aria-label="Modes de classement">
         <button
@@ -68,14 +73,36 @@ ata?<!DOCTYPE html>
         >
           <span class="tab-label">{{ mode.label }}</span>
 
-          <span class="tab-help" tabindex="0" aria-label="Explication du classement">
+          <!-- Bouton help séparé (stop pour ne pas changer d’onglet) -->
+          <span
+            class="tab-help"
+            role="button"
+            tabindex="0"
+            aria-label="Explication du classement"
+            @click.stop="toggleHelp(mode.id)"
+            @keydown.enter.stop="toggleHelp(mode.id)"
+            @keydown.space.prevent.stop="toggleHelp(mode.id)"
+          >
             ?
-            <span class="tab-tooltip" role="tooltip">
-              {{ mode.help }}
-            </span>
           </span>
         </button>
       </nav>
+    </div>
+
+    <!-- Tooltip (un seul global, mieux pour mobile/position) -->
+    <div
+      class="tooltip-layer"
+      v-if="openHelpId"
+      @click="closeHelp"
+      aria-hidden="false"
+    >
+      <div class="tab-tooltip tab-tooltip--global" role="dialog" @click.stop>
+        <div class="tab-tooltip-title">{{ helpTitle }}</div>
+        <div class="tab-tooltip-body">{{ helpText }}</div>
+        <button class="tab-tooltip-close" type="button" @click="closeHelp" aria-label="Fermer">
+          ✕
+        </button>
+      </div>
     </div>
 
     <div v-if="loading" class="loading">
@@ -97,12 +124,10 @@ ata?<!DOCTYPE html>
           </div>
 
           <div class="song-header-main">
-            <!-- ARTISTE -->
             <div class="song-header-artist">
               <span class="song-artist-glitch">{{ song.artistUpper }}</span>
             </div>
 
-            <!-- TITRE -->
             <div class="song-header-title">
               <span class="song-title-text">{{ song.titleUpper }}</span>
             </div>
@@ -119,9 +144,7 @@ ata?<!DOCTYPE html>
             <p class="song-meta">
               {{ song.album }}
               <span v-if="song.plays"> • {{ song.plays }} lectures</span>
-              <span v-if="song.totalMinutes">
-                • {{ song.totalMinutes.toFixed(1) }} min écoutées
-              </span>
+              <span v-if="song.totalMinutes"> • {{ song.totalMinutes.toFixed(1) }} min écoutées</span>
             </p>
 
             <div class="song-actions">
@@ -157,7 +180,7 @@ ata?<!DOCTYPE html>
   </main>
 </div>
 
-<!-- HERO SHRINK + ONGLETS FIXÉS -->
+<!-- HERO SHRINK + scroll -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const hero = document.getElementById("hero");
@@ -180,6 +203,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
+
+  // Bouton flèche
+  const btn = document.getElementById("hero-scroll");
+  if (btn) {
+    btn.addEventListener("click", () => {
+      window.scrollTo({ top: Math.max(1, window.innerHeight * 0.25), behavior: "smooth" });
+    });
+  }
 });
 </script>
 
