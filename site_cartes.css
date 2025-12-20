@@ -498,14 +498,39 @@ body.tabs-fixed .tabs-sticky-wrapper{
   opacity:0.8;
 }
 
-/* Responsive */
 @media (max-width:700px){
-  :root{
-    --hero-compact-h: 18vh;
-    --tabs-h: 78px;
-    --tabs-gap: 24px;
+
+  /* ===== FIX TOOLTIP MOBILE FINAL ===== */
+
+  .tab-help{
+    width:22px;
+    height:22px;
+    font-size:0.75rem;
   }
 
-  .tabs-sticky-wrapper{ top:var(--hero-compact-h); }
-  .song-card{ width:100%; }
+  .tab-tooltip{
+    position:fixed;
+
+    /* CENTRÉ sous les onglets */
+    top:calc(var(--hero-compact-h) + var(--tabs-h) + 6px);
+    left:50%;
+    transform:translateX(-50%);
+
+    width:calc(100vw - 32px);
+    max-width:420px;
+
+    z-index:999999;
+
+    pointer-events:none;
+  }
+
+  /* On enlève la flèche en mobile (elle n’a plus de sens en fixed) */
+  .tab-tooltip::after{
+    display:none;
+  }
+
+  .tab-help:hover .tab-tooltip,
+  .tab-help:focus-within .tab-tooltip{
+    opacity:1;
+  }
 }

@@ -4,7 +4,6 @@ const { createApp, nextTick } = Vue;
 // Mets ici EXACTEMENT tes fichiers dans /fond
 const FOND_IMAGES = [
   "Ata Kak.png",
-  "Laurence Jalbert.png",
   "Asil Hadkins.png",
   "Louise Forestier.png",
   "Monsieur Tranquille.png",
