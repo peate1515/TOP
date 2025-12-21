@@ -72,13 +72,13 @@ createApp({
           id: "zscore",
           label: "Top z-score",
           rankField: "rankZscore",
-          help: "Classement statistique normalisé qui met en valeur les écoutes exceptionnelles."
+          help: "Méthode ou le nombre d'écoute vaut pour 75% et la durée pour 25%"
         },
         {
           id: "jessye",
-          label: "Top Jessye",
+          label: "Top Méthode Jessye",
           rankField: "rankJessye",
-          help: "Classement maison combinant fréquence, durée et constance d’écoute."
+          help: "Méthode proposé par Jessye ,basée sur le nombre d'écoute et si seulement la chanson dépasse 6 minutes , il y a un bonus d'écoute"
         }
       ],
 
