@@ -76,7 +76,7 @@ createApp({
         },
         {
           id: "jessye",
-          label: "Top Méthode Jessye",
+          label: "Méthode Jessye",
           rankField: "rankJessye",
           help: "Méthode proposé par Jessye ,basée sur le nombre d'écoute et si seulement la chanson dépasse 6 minutes , il y a un bonus d'écoute"
         }
